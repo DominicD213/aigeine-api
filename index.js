@@ -9,21 +9,21 @@ const { Server } = require('socket.io');
 const { GridFSBucket } = require('mongodb');
 const multer = require('multer');
 const path = require('path');
+const MongoStore = require('connect-mongo');
 require('dotenv').config({ path: './vars/.env' });
-
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: `${process.env.ORIGIN}`,
+        origin: process.env.ORIGIN,
         methods: ["GET", "POST"]
     }
 });
 
 // CORS setup
 const corsOptions = {
-    origin: `${process.env.ORIGIN}`,
+    origin: process.env.ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -37,12 +37,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const secretKey = crypto.randomBytes(32).toString('hex');
 
-// Session setup
+// Session setup with connect-mongo
 app.use(session({
     secret: secretKey,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    store: MongoStore.create({
+        mongoUrl: process.env.DB_URI,
+        collectionName: 'sessions',
+        ttl: 14 * 24 * 60 * 60 // 14 days
+    }),
+    cookie: { secure: false } // Set to true if using https
 }));
 
 // Setup multer for file uploads
