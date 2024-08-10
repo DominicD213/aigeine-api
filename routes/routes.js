@@ -121,30 +121,31 @@ const createRouter = (io, upload) => {
     }
 
     // OpenAI response route
-    router.get('/login/session-status/openAIResponse/responseQuery', async (req, res) => {
-        console.log('Session Data:', req.session.user);
-    
+    router.post('/login/session-status/openAIResponse', async (req, res) => {
         if (!req.session.user) {
             return res.status(401).send('Unauthorized');
         }
-    
+
         try {
+            const query = req.body.query;
+            const response = await converseWithChatGPT(query);
+
             const userId = req.session.user.id;
-            const userQueries = await UserQueries.find({ user: userId })
-                .select('query response')
-                .exec();
-    
-            if (!userQueries.length) {
-                return res.status(404).send('No queries found');
-            }
-    
-            return res.status(200).json(userQueries);
+            const newRequest = new UserQueries({
+                user: userId,
+                query: query,
+                response: response,
+            });
+            await newRequest.save();
+
+            io.emit('newQuery', { query, response });
+
+            return res.status(200).json({ response });
         } catch (error) {
-            console.error('Error retrieving user queries:', error.message || error);
-            return res.status(500).send('Internal Server Error');
+            console.error('OpenAI API error:', error);
+            return res.status(500).send('Error communicating with OpenAI API');
         }
     });
-    
 
     // Retrieve the most recent user queries
     router.get('/login/session-status/openAIResponse/responseQuery', async (req, res) => {
