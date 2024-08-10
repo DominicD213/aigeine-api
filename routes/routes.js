@@ -55,6 +55,8 @@ const createRouter = (io, upload) => {
                 image: user.userImage
             };
     
+            console.log(req.session.user.username);
+
             return res.status(200).json({
                 message: 'Login successful',
                 user: {
@@ -63,6 +65,7 @@ const createRouter = (io, upload) => {
                     image: user.imageUrl
                 }
             });
+
         } catch (error) {
             console.error('Login error:', error);
             return res.status(500).send('Error logging in');
@@ -118,31 +121,30 @@ const createRouter = (io, upload) => {
     }
 
     // OpenAI response route
-    router.post('/login/session-status/openAIResponse', async (req, res) => {
+    router.get('/login/session-status/openAIResponse/responseQuery', async (req, res) => {
+        console.log('Session Data:', req.session.user);
+    
         if (!req.session.user) {
             return res.status(401).send('Unauthorized');
         }
-
+    
         try {
-            const query = req.body.query;
-            const response = await converseWithChatGPT(query);
-
             const userId = req.session.user.id;
-            const newRequest = new UserQueries({
-                user: userId,
-                query: query,
-                response: response,
-            });
-            await newRequest.save();
-
-            io.emit('newQuery', { query, response });
-
-            return res.status(200).json({ response });
+            const userQueries = await UserQueries.find({ user: userId })
+                .select('query response')
+                .exec();
+    
+            if (!userQueries.length) {
+                return res.status(404).send('No queries found');
+            }
+    
+            return res.status(200).json(userQueries);
         } catch (error) {
-            console.error('OpenAI API error:', error);
-            return res.status(500).send('Error communicating with OpenAI API');
+            console.error('Error retrieving user queries:', error.message || error);
+            return res.status(500).send('Internal Server Error');
         }
     });
+    
 
     // Retrieve the most recent user queries
     router.get('/login/session-status/openAIResponse/responseQuery', async (req, res) => {
