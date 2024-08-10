@@ -74,9 +74,12 @@ const createRouter = (io, upload) => {
 
     // Session status route
     router.get('/login/session-status', (req, res) => {
+        console.log('Session status route accessed');
         if (req.session.user) {
+            console.log('User session found:', req.session.user);
             return res.status(200).json({ active: true, user: req.session.user });
         } else {
+            console.log('No active session');
             return res.status(200).json({ active: false });
         }
     });
