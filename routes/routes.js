@@ -69,17 +69,6 @@ const createRouter = (io, upload) => {
                     }
                 });
             });
-
-
-            return res.status(200).json({
-                message: 'Login successful',
-                user: {
-                    username: user.username,
-                    email: user.email,
-                    image: user.imageUrl
-                }
-            });
-
         } catch (error) {
             console.error('Login error:', error);
             return res.status(500).send('Error logging in');
@@ -94,6 +83,7 @@ const createRouter = (io, upload) => {
             return res.status(200).json({ active: true, user: req.session.user });
         } else {
             console.log('No active session');
+            return res.status(401).json({ active: false });
         }
     });
 
@@ -243,16 +233,16 @@ const createRouter = (io, upload) => {
                     user.userImage = file._id;
                     await user.save();
                     console.log('User updated with image ID:', file._id);
-                    res.status(201).send({ fileId: file._id });
+                    return res.status(201).send({ fileId: file._id });
                 } catch (error) {
                     console.error('Error updating user:', error);
-                    res.status(500).send('Internal Server Error');
+                    return res.status(500).send('Internal Server Error');
                 }
             });
     
             stream.on('error', (err) => {
                 console.error('Error uploading file:', err);
-                res.status(500).send('Internal Server Error');
+                return res.status(500).send('Internal Server Error');
             });
         } catch (error) {
             console.error('Error handling file upload:', error);
