@@ -16,14 +16,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: [process.env.ORIGIN, 'http://localhost:3000','https://aigiene.onrender.com/'],
-        methods: ["GET", "POST"]
+        origin: [process.env.ORIGIN, 'http://localhost:3000'],
+        methods: ["GET", "POST"],
     }
 });
 
 // CORS setup
 const corsOptions = {
-    origin: [process.env.ORIGIN, 'http://localhost:3000','https://aigiene.onrender.com/'],
+    origin: [process.env.ORIGIN, 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
