@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const session = require('express-session');
+var session = require('express-session')
 const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -41,7 +41,7 @@ const secretKey = crypto.randomBytes(32).toString('hex');
 app.use(session({
     secret: secretKey,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({
         mongoUrl: process.env.DB_URI,
         collectionName: 'sessions',

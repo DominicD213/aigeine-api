@@ -80,7 +80,6 @@ const createRouter = (io, upload) => {
             return res.status(200).json({ active: true, user: req.session.user });
         } else {
             console.log('No active session');
-            return res.status(400).json({ active: false });
         }
     });
 
