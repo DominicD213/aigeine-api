@@ -55,7 +55,21 @@ const createRouter = (io, upload) => {
                 image: user.userImage,
             };
     
-            console.log(req.session.user.username);
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Session save error:', err);
+                    return res.status(500).send('Error saving session');
+                }
+                return res.status(200).json({
+                    message: 'Login successful',
+                    user: {
+                        username: user.username,
+                        email: user.email,
+                        image: user.userImage
+                    }
+                });
+            });
+
 
             return res.status(200).json({
                 message: 'Login successful',
