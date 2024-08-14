@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-var session = require('express-session')
+const session = require('express-session');
 const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -14,16 +14,19 @@ require('dotenv').config({ path: './vars/.env' });
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.IO CORS configuration
 const io = new Server(server, {
     cors: {
-        origin: [process.env.ORIGIN, 'http://localhost:3000'],
+        origin: [process.env.ORIGIN, 'http://localhost:3000'],  // Only ORIGIN and localhost
         methods: ["GET", "POST"],
+        credentials: true,
     }
 });
 
-// CORS setup
+// Express CORS configuration
 const corsOptions = {
-    origin: [process.env.ORIGIN, 'http://localhost:3000'],
+    origin: [process.env.ORIGIN, 'http://localhost:3000'], // Use ORIGIN variable
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -47,7 +50,11 @@ app.use(session({
         collectionName: 'sessions',
         ttl: 14 * 24 * 60 * 60 // 14 days
     }),
-    cookie: { secure: false } // Set to true if using https
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Secure cookies in production
+        httpOnly: true,
+        sameSite: 'lax',
+    }
 }));
 
 // Setup multer for file uploads
@@ -106,6 +113,7 @@ server.listen(port, () => {
     console.log(`Server is active on port ${port}`);
 });
 
+// Socket.IO connection handling
 io.on('connection', (socket) => {
     console.log('Socket.io connected');
 
